@@ -311,7 +311,7 @@ fn c_char_array_to_string(p: *const c_char) -> String {
     unsafe { CStr::from_ptr(p).to_string_lossy().into_owned() }
 }
 
-pub fn get_wide(s: &str) -> Vec<u16> {
+fn get_wide(s: &str) -> Vec<u16> {
     OsStr::new(s).encode_wide().chain(std::iter::once(0)).collect()
 }
 
