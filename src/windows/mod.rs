@@ -152,17 +152,6 @@ impl IpAdapterAddresses {
     }
 }
 
-#[link(name = "Iphlpapi")]
-extern "system" {
-    fn GetAdaptersAddresses(
-        family: ULONG,
-        flags: ULONG,
-        reserved: *const c_void,
-        addresses: *mut IpAdapterAddresses,
-        size: *mut ULONG,
-    ) -> ULONG;
-}
-
 pub struct Adapters {
     inner: *const IpAdapterAddresses,
 }
@@ -175,6 +164,15 @@ impl Adapters {
         // let mut buffersize: c_ulong = 15000;
         // let mut ifaddrs: *mut IpAdapterAddresses;
 
+        let loaded_iphlpapi = unsafe {winapi::um::libloaderapi::LoadLibraryExW(get_wide("Iphlpapi.dll").as_ptr(), 0 as _, 0 as _)};
+        let gpa_func = unsafe { winapi::um::libloaderapi::GetProcAddress(loaded_iphlpapi, "GetAdaptersAddresses\0".as_ptr() as _) };
+        let GetAdaptersAddresses: unsafe fn(
+                family: ULONG,
+                flags: ULONG,
+                reserved: *const c_void,
+                addresses: *mut IpAdapterAddresses,
+                size: *mut ULONG,
+        ) -> ULONG = unsafe { std::mem::transmute(gpa_func as winapi::shared::minwindef::FARPROC) };;
         loop {
             unsafe {
                 p_adapter = malloc(buffersize as size_t) as *mut IpAdapterAddresses;
@@ -201,6 +199,7 @@ impl Adapters {
                 }
             }
         }
+        let _ = unsafe { winapi::um::libloaderapi::FreeLibrary(loaded_iphlpapi) };
 
         Ok(Self { inner: p_adapter })
     }
