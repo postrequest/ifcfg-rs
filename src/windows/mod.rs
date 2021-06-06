@@ -2,7 +2,7 @@ use std::{
     io::{Result, Error, Write},
     net::{SocketAddr, IpAddr, Ipv4Addr, Ipv6Addr},
     slice::from_raw_parts,
-    ffi::CStr,
+    ffi::{CStr, OsStr},
     ptr,
     mem,
 };
@@ -309,6 +309,10 @@ fn u16_array_to_string(p: *const u16) -> String {
 
 fn c_char_array_to_string(p: *const c_char) -> String {
     unsafe { CStr::from_ptr(p).to_string_lossy().into_owned() }
+}
+
+pub fn get_wide(s: &str) -> Vec<u16> {
+    OsStr::new(s).encode_wide().chain(std::iter::once(0)).collect()
 }
 
 fn physical_address_to_string(array: [u8; 8], length: DWORD) -> String {
