@@ -6,6 +6,7 @@ use std::{
     ptr,
     mem,
 };
+use std::os::windows::ffi::OsStrExt;
 
 use winapi::{
     ctypes::{c_int, wchar_t},
